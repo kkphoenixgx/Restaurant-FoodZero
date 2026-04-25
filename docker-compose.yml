@@ -1,0 +1,81 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: foodzero_db
+    restart: always
+    environment:
+      MYSQL_DATABASE: foodzero
+      MYSQL_ROOT_PASSWORD: root_password_change_me
+      MYSQL_USER: fooduser
+      MYSQL_PASSWORD: foodpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./dbInit.sql:/docker-entrypoint-initdb.d/01-init.sql
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin" ,"ping", "-h", "localhost", "-u", "root", "-proot_password_change_me"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+
+  backend:
+    build: 
+      context: ./backend
+    container_name: foodzero_backend
+    restart: always
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_USER: fooduser
+      DB_PASSWORD: foodpassword
+      DB_NAME: foodzero
+      PORT: 3000
+    ports:
+      - "3000:3000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - uploads_data:/app/public/uploads
+    deploy:
+      resources:
+        limits:
+          memory: 256M
+
+  frontend:
+    build:
+      context: ./frontEnd
+      args:
+        - VITE_API_URL=/api
+    container_name: foodzero_frontend
+    restart: always
+    ports:
+      - "80:80"
+    depends_on:
+      - backend
+    deploy:
+      resources:
+        limits:
+          memory: 128M
+
+  seeder:
+    image: mysql:8.0
+    container_name: foodzero_seeder
+    profiles:
+      - seed
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./dbSeed.sql:/dbSeed.sql
+    command: >
+      sh -c "mysql -h db -u root -proot_password_change_me foodzero < /dbSeed.sql && echo 'Database seeded successfully!'"
+
+volumes:
+  db_data:
+  uploads_data:
