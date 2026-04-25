@@ -1,5 +1,7 @@
 # 🍽️ FoodZero - Restaurante & Blog
 
+![image](./sample_data/restaurant-food-zero.png)
+
 [Português](#br) | [English](#en)
 
 ---
