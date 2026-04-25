@@ -85,3 +85,6 @@ docker compose up --build
 *   `/frontEnd`: Vue.js 3 Single Page Application.
 *   `/dbInit.sql`: Database schema.
 *   `/dbSeed.sql`: Initial data for testing.
+
+![db](./sample_data/restaurantFoodZeroDatabase.png)
+
